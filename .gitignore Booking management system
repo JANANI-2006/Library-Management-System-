@@ -1,0 +1,233 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.event.*;
+import java.util.ArrayList;
+
+class Book {
+    private String isbn;
+    private String title;
+    private String author;
+    private String status;
+
+    public Book(String isbn, String title, String author, String status) {
+        this.isbn = isbn;
+        this.title = title;
+        this.author = author;
+        this.status = status;
+    }
+
+    public String getIsbn() { return isbn; }
+    public String getTitle() { return title; }
+    public String getAuthor() { return author; }
+    public String getStatus() { return status; }
+
+    public void setTitle(String title) { this.title = title; }
+    public void setAuthor(String author) { this.author = author; }
+    public void setStatus(String status) { this.status = status; }
+}
+
+public class LibraryManagementSystem extends JFrame {
+    private ArrayList<Book> books = new ArrayList<>();
+    private DefaultTableModel tableModel;
+
+    public LibraryManagementSystem() {
+        setTitle("Library Management System");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        // Layout setup
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+
+        JLabel lblIsbn = new JLabel("ISBN:");
+        lblIsbn.setBounds(20, 20, 100, 25);
+        panel.add(lblIsbn);
+
+        JTextField txtIsbn = new JTextField();
+        txtIsbn.setBounds(100, 20, 200, 25);
+        panel.add(txtIsbn);
+
+        JLabel lblTitle = new JLabel("Title:");
+        lblTitle.setBounds(20, 60, 100, 25);
+        panel.add(lblTitle);
+
+        JTextField txtTitle = new JTextField();
+        txtTitle.setBounds(100, 60, 200, 25);
+        panel.add(txtTitle);
+
+        JLabel lblAuthor = new JLabel("Author:");
+        lblAuthor.setBounds(20, 100, 100, 25);
+        panel.add(lblAuthor);
+
+        JTextField txtAuthor = new JTextField();
+        txtAuthor.setBounds(100, 100, 200, 25);
+        panel.add(txtAuthor);
+
+        JLabel lblStatus = new JLabel("Status:");
+        lblStatus.setBounds(20, 140, 100, 25);
+        panel.add(lblStatus);
+
+        JComboBox<String> comboStatus = new JComboBox<>(new String[]{"Available", "Not Available"});
+        comboStatus.setBounds(100, 140, 200, 25);
+        panel.add(comboStatus);
+
+        JButton btnAdd = new JButton("Add");
+        btnAdd.setBounds(20, 180, 100, 30);
+        panel.add(btnAdd);
+
+        JButton btnUpdate = new JButton("Update");
+        btnUpdate.setBounds(130, 180, 100, 30);
+        panel.add(btnUpdate);
+
+        JButton btnDelete = new JButton("Delete");
+        btnDelete.setBounds(240, 180, 100, 30);
+        panel.add(btnDelete);
+
+        JTable bookTable = new JTable();
+        tableModel = new DefaultTableModel(new String[]{"ISBN", "Title", "Author", "Status"}, 0);
+        bookTable.setModel(tableModel);
+        JScrollPane scrollPane = new JScrollPane(bookTable);
+        scrollPane.setBounds(350, 20, 400, 400);
+        panel.add(scrollPane);
+
+        JButton btnSearch = new JButton("Search");
+        btnSearch.setBounds(350, 430, 100, 30);
+        panel.add(btnSearch);
+
+        JTextField txtSearch = new JTextField();
+        txtSearch.setBounds(460, 430, 290, 30);
+        panel.add(txtSearch);
+
+        // Add Take Book and Return Book buttons
+        JButton btnTakeBook = new JButton("Take Book");
+        btnTakeBook.setBounds(350, 480, 150, 30);
+        panel.add(btnTakeBook);
+
+        JButton btnReturnBook = new JButton("Return Book");
+        btnReturnBook.setBounds(520, 480, 150, 30);
+        panel.add(btnReturnBook);
+
+        // Button actions
+        btnAdd.addActionListener(e -> {
+            String isbn = txtIsbn.getText();
+            String title = txtTitle.getText();
+            String author = txtAuthor.getText();
+            String status = comboStatus.getSelectedItem().toString();
+
+            if (isbn.isEmpty() || title.isEmpty() || author.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            books.add(new Book(isbn, title, author, status));
+            tableModel.addRow(new Object[]{isbn, title, author, status});
+            JOptionPane.showMessageDialog(this, "Book added successfully!");
+            clearFields(txtIsbn, txtTitle, txtAuthor);
+        });
+
+        btnUpdate.addActionListener(e -> {
+            int selectedRow = bookTable.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Please select a book to update!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String isbn = txtIsbn.getText();
+            String title = txtTitle.getText();
+            String author = txtAuthor.getText();
+            String status = comboStatus.getSelectedItem().toString();
+
+            if (isbn.isEmpty() || title.isEmpty() || author.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Book book = books.get(selectedRow);
+            book.setTitle(title);
+            book.setAuthor(author);
+            book.setStatus(status);
+
+            tableModel.setValueAt(title, selectedRow, 1);
+            tableModel.setValueAt(author, selectedRow, 2);
+            tableModel.setValueAt(status, selectedRow, 3);
+            JOptionPane.showMessageDialog(this, "Book updated successfully!");
+        });
+
+        btnDelete.addActionListener(e -> {
+            int selectedRow = bookTable.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Please select a book to delete!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            books.remove(selectedRow);
+            tableModel.removeRow(selectedRow);
+            JOptionPane.showMessageDialog(this, "Book deleted successfully!");
+        });
+
+        btnSearch.addActionListener(e -> {
+            String searchText = txtSearch.getText().toLowerCase();
+            tableModel.setRowCount(0);
+
+            for (Book book : books) {
+                if (book.getIsbn().toLowerCase().contains(searchText) ||
+                        book.getTitle().toLowerCase().contains(searchText) ||
+                        book.getAuthor().toLowerCase().contains(searchText) ||
+                        book.getStatus().toLowerCase().contains(searchText)) {
+                    tableModel.addRow(new Object[]{book.getIsbn(), book.getTitle(), book.getAuthor(), book.getStatus()});
+                }
+            }
+        });
+
+        btnTakeBook.addActionListener(e -> {
+            int selectedRow = bookTable.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Please select a book to take!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Book book = books.get(selectedRow);
+            if (book.getStatus().equals("Not Available")) {
+                JOptionPane.showMessageDialog(this, "Book is already taken!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            book.setStatus("Not Available");
+            tableModel.setValueAt("Not Available", selectedRow, 3);
+            JOptionPane.showMessageDialog(this, "Book taken successfully!");
+        });
+
+        btnReturnBook.addActionListener(e -> {
+            int selectedRow = bookTable.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Please select a book to return!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Book book = books.get(selectedRow);
+            if (book.getStatus().equals("Available")) {
+                JOptionPane.showMessageDialog(this, "Book is already available!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            book.setStatus("Available");
+            tableModel.setValueAt("Available", selectedRow, 3);
+            JOptionPane.showMessageDialog(this, "Book returned successfully!");
+        });
+
+        add(panel);
+    }
+
+    private void clearFields(JTextField txtIsbn, JTextField txtTitle, JTextField txtAuthor) {
+        txtIsbn.setText("");
+        txtTitle.setText("");
+        txtAuthor.setText("");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new LibraryManagementSystem().setVisible(true);
+        });
+    }
+}
